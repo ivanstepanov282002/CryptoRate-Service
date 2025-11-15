@@ -1,0 +1,41 @@
+# Environment variables - Переменные окружения
+.env
+*.env
+
+# Binaries for programs and plugins - Исполняемые файлы
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+/bin/  # Папка с собранными бинарниками
+
+# Test binary, built with `go test -c` - Тестовые бинарники
+*.test
+
+# Output of the go coverage tool - Отчеты покрытия тестами
+*.out
+
+# Dependency directories - Папки зависимостей (go mod)
+vendor/  # Если используете vendor
+
+# Go workspace file - Файл рабочего пространства
+go.work
+
+# IDE and editor directories - Папки редакторов кода
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS generated files - Системные файлы
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
