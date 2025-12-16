@@ -1,7 +1,7 @@
 package api
 
 import (
-	"CryptoRate-Service/internal/models"
+	"cryptorate-service/internal/models"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -25,6 +25,7 @@ func NewCoinGeckoClient() *CoinGeckoClient {
 	}
 }
 
+//Выполняет запрос курса валют по API, читает ответ, парсит JSON
 func (c *CoinGeckoClient) GetPrices(coinIDs []string) (models.CoinGeckoResponse, error) {
 	// Формируем URL
 	params := url.Values{}
