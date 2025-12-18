@@ -13,6 +13,7 @@ type ExchangeRate struct {
 	ID         int     `json:"id"`
 	CurrencyID int     `json:"currency_id"`
 	Price      float64 `json:"price"`
+	RecordedAt time.Time `json:"recorded_at"` 
 }
 
 type CoinGeckoResponse map[string]struct {
@@ -23,4 +24,12 @@ type CurrencyRateView struct {
 	NameCurrency string    `json:"name_currency"`
 	Price        float64   `json:"price"`
 	RecordedAt   time.Time `json:"recorded_at"`
+	CurrencyID   int       `json:"currency_id"`
+}
+
+type UserSettings struct {
+    UserID     int64      `json:"user_id"`
+    Interval   int        `json:"interval"`
+    LastSent   time.Time  `json:"last_sent"`
+    Currencies []Currency `json:"currencies"`
 }
