@@ -5,6 +5,8 @@ import "time"
 type Currency struct {
 	ID           int    `json:"id"`
 	NameCurrency string `json:"name_currency"`
+	DisplayName  string `json:"display_name"`
+	Symbol       string `json:"symbol"` 
 }
 
 type ExchangeRate struct {

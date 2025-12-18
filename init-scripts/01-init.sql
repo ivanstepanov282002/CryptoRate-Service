@@ -16,7 +16,9 @@ FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 
 CREATE TABLE IF NOT EXISTS Currency ( 
 id SERIAL PRIMARY KEY, 
-name_currency VARCHAR(50) UNIQUE
+name_currency VARCHAR(50) UNIQUE,
+display_name VARCHAR(50),
+symbol VARCHAR(10)   
 );
 
 CREATE TABLE IF NOT EXISTS Currency_settings ( 
@@ -35,3 +37,13 @@ price DECIMAL(15, 6) NOT NULL,
 recorded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY  (currency_id) REFERENCES Currency(id)
 );
+
+INSERT INTO Currency (name_currency, display_name, symbol) VALUES 
+('bitcoin',       'Bitcoin',      'BTC'),
+('ethereum',      'Ethereum',     'ETH'),
+('tether',        'Tether',       'USDT'),
+('binancecoin',   'BNB',          'BNB'),
+('solana',        'Solana',       'SOL'),
+('ripple',        'XRP',          'XRP'),
+('cardano',       'Cardano',      'ADA')
+ON CONFLICT (name_currency) DO NOTHING;

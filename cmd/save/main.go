@@ -82,9 +82,19 @@ func main() {
 func updateRates(client *api.CoinGeckoClient, repo *repository.Repository) {
 	//Добавлен timestamp в логи
 	currentTime := time.Now().Format("15:04")
-	fmt.Printf("\n⏰ [%s] Fetching rates...\n", currentTime)
+	fmt.Printf("\n⏰ [%s] Fetching rates for 7 currencies...\n", currentTime)
 
-	prices, err := client.GetPrices([]string{"bitcoin", "ethereum"})
+	coinIDs := []string{
+        "bitcoin",
+        "ethereum", 
+        "tether",
+        "binancecoin",
+        "solana",
+        "ripple",
+        "cardano",
+    }
+
+	prices, err := client.GetPrices(coinIDs)
 	if err != nil {
 		log.Printf("❌ API error: %v", err)
 		return
