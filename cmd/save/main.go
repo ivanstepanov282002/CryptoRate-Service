@@ -28,7 +28,7 @@ func main() {
 
 	// Пробуем получить из .env, если не получилось - используем значения выше
 	if user := os.Getenv("POSTGRES_USER"); user != "" {
-		connStr = fmt.Sprintf("host=localhost port=5432 user=%s password=%s dbname=%s sslmode=disable",
+		connStr = fmt.Sprintf("host=postgres port=5432 user=%s password=%s dbname=%s sslmode=disable",
 			os.Getenv("POSTGRES_USER"),
 			os.Getenv("POSTGRES_PASSWORD"),
 			os.Getenv("POSTGRES_DB"))

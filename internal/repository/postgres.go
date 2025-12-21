@@ -15,6 +15,10 @@ func NewRepository(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
 
+func (r *Repository) Ping() error {
+    return r.db.Ping()
+}
+
 // SaveRate saves the currency exchange rate in the database
 func (r *Repository) SaveRate(rate models.ExchangeRate) error {
 	_, err := r.db.Exec(`

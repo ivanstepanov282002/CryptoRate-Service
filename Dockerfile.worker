@@ -1,0 +1,24 @@
+# Многоэтапная сборка для воркера обновления курсов
+FROM golang:1.24-alpine AS builder
+
+WORKDIR /app
+
+# Копируем зависимости
+COPY go.mod go.sum ./
+RUN go mod download
+
+# Копируем исходный код
+COPY . .
+
+# Собираем бинарник воркера
+RUN CGO_ENABLED=0 GOOS=linux go build -o crypto-worker ./cmd/save
+
+# Финальный образ (минимальный)
+FROM alpine:latest
+RUN apk --no-cache add ca-certificates tzdata
+
+WORKDIR /root/
+COPY --from=builder /app/crypto-worker .
+
+# Запускаем воркер с интервалом 5 минут
+CMD ["./crypto-worker", "-interval", "5"]
