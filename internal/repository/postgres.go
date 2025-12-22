@@ -22,7 +22,7 @@ func (r *Repository) Ping() error {
 // SaveRate saves the currency exchange rate in the database
 func (r *Repository) SaveRate(rate models.ExchangeRate) error {
 	_, err := r.db.Exec(`
-        INSERT INTO exchange_rate (currency_id, price) 
+        INSERT INTO exchange_rate (currency_id, price)
         VALUES ($1, $2)`,
 		rate.CurrencyID, rate.Price)
 	return err
@@ -43,7 +43,7 @@ func (r *Repository) GetLatestRates() ([]models.CurrencyRateView, error) {
             c.name_currency,
             e.price,
             e.recorded_at,
-            c.id as currency_id  -- ← ДОБАВЛЕНО
+            c.id as currency_id
         FROM currency c
         JOIN exchange_rate e ON c.id = e.currency_id
         ORDER BY c.name_currency, e.recorded_at DESC`
@@ -129,9 +129,9 @@ func (r *Repository) GetCurrencySymbolByID(currencyID int) (string, error) {
 // EnsureUser создает пользователя или обновляет имя если оно не пустое
 func (r *Repository) EnsureUser(userID int64, userName string) error {
 	_, err := r.db.Exec(`
-        INSERT INTO Users (user_id, user_name) 
+        INSERT INTO Users (user_id, user_name)
         VALUES ($1, $2)
-        ON CONFLICT (user_id) DO UPDATE SET 
+        ON CONFLICT (user_id) DO UPDATE SET
             user_name = COALESCE(NULLIF($2, ''), Users.user_name)
         -- COALESCE возвращает первый не-NULL аргумент
         -- NULLIF($2, '') возвращает NULL если $2 пустая строка
@@ -151,9 +151,9 @@ func (r *Repository) SetUserInterval(userID int64, interval int) error {
 
 	// Обновляем или добавляем настройки
 	_, err = tx.Exec(`
-        INSERT INTO Settings (user_id, time_interval, last_sent) 
+        INSERT INTO Settings (user_id, time_interval, last_sent)
         VALUES ($1, $2, NOW())
-        ON CONFLICT (user_id) 
+        ON CONFLICT (user_id)
         DO UPDATE SET time_interval = $2, last_sent = NOW()
     `, userID, interval)
 	if err != nil {
@@ -166,7 +166,7 @@ func (r *Repository) SetUserInterval(userID int64, interval int) error {
         INSERT INTO Currency_settings (user_id, currency_id, is_active)
         SELECT $1, id, true
         FROM Currency
-        ON CONFLICT (user_id, currency_id) 
+        ON CONFLICT (user_id, currency_id)
         DO UPDATE SET is_active = true
     `, userID)
 	if err != nil {
@@ -180,7 +180,7 @@ func (r *Repository) SetUserInterval(userID int64, interval int) error {
 // StopAuto отключает автоотправку
 func (r *Repository) StopAuto(userID int64) error {
 	_, err := r.db.Exec(`
-        UPDATE Settings 
+        UPDATE Settings
         SET time_interval = NULL
         WHERE user_id = $1
     `, userID)
@@ -190,7 +190,7 @@ func (r *Repository) StopAuto(userID int64) error {
 // GetSubscribedUsers возвращает пользователей с активными подписками
 func (r *Repository) GetSubscribedUsers() ([]models.UserSettings, error) {
 	query := `
-        SELECT s.user_id, s.time_interval, s.last_sent, 
+        SELECT s.user_id, s.time_interval, s.last_sent,
         c.id, c.name_currency, c.display_name, c.symbol
         FROM Settings s
         JOIN Currency_settings cs ON s.user_id = cs.user_id AND cs.is_active = true
@@ -244,7 +244,7 @@ func (r *Repository) GetSubscribedUsers() ([]models.UserSettings, error) {
 // UpdateLastSent обновляет время последней отправки
 func (r *Repository) UpdateLastSent(userID int64) error {
 	_, err := r.db.Exec(`
-        UPDATE Settings 
+        UPDATE Settings
         SET last_sent = NOW()
         WHERE user_id = $1
     `, userID)
@@ -268,7 +268,7 @@ func (r *Repository) GetDailyMinMax(currencyID int) (min, max float64, err error
 	query := `
         SELECT MIN(price), MAX(price)
         FROM Exchange_rate
-        WHERE currency_id = $1 
+        WHERE currency_id = $1
         AND recorded_at >= CURRENT_DATE
         AND recorded_at < CURRENT_DATE + INTERVAL '1 day'`
 
@@ -281,10 +281,10 @@ func (r *Repository) GetHourlyChange(currencyID int) (change float64, err error)
 	// Текущая цена
 	var currentPrice float64
 	err = r.db.QueryRow(`
-        SELECT price 
-        FROM Exchange_rate 
-        WHERE currency_id = $1 
-        ORDER BY recorded_at DESC 
+        SELECT price
+        FROM Exchange_rate
+        WHERE currency_id = $1
+        ORDER BY recorded_at DESC
         LIMIT 1`, currencyID).Scan(&currentPrice)
 	if err != nil {
 		return 0, err
@@ -293,11 +293,11 @@ func (r *Repository) GetHourlyChange(currencyID int) (change float64, err error)
 	// Цена час назад
 	var priceHourAgo float64
 	err = r.db.QueryRow(`
-        SELECT price 
-        FROM Exchange_rate 
-        WHERE currency_id = $1 
+        SELECT price
+        FROM Exchange_rate
+        WHERE currency_id = $1
         AND recorded_at <= NOW() - INTERVAL '1 hour'
-        ORDER BY recorded_at DESC 
+        ORDER BY recorded_at DESC
         LIMIT 1`, currencyID).Scan(&priceHourAgo)
 	if err != nil {
 		// Если нет записи час назад, возвращаем 0

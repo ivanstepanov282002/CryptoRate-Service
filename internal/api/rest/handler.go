@@ -1,7 +1,7 @@
 package rest
 
 import (
-	"cryptorate-service/internal/repository"
+	"cryptorate-service/internal/models"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -36,7 +36,7 @@ type RateResponse struct {
 type StatsResponse struct {
 	Currency     string    `json:"currency"`
 	Symbol       string    `json:"symbol"`
-	DisplayName  string    `json:"display_name"` 
+	DisplayName  string    `json:"display_name"`
 	Current      float64   `json:"current"`
 	DailyMin     float64   `json:"daily_min"`
 	DailyMax     float64   `json:"daily_max"`
@@ -51,11 +51,26 @@ type CurrencyResponse struct {
 	Symbol      string `json:"symbol"`
 }
 
-type Handler struct {
-	repo *repository.Repository
+// RepositoryInterface определяет интерфейс для операций с репозиторием
+type RepositoryInterface interface {
+	GetLatestRates() ([]models.CurrencyRateView, error)
+	GetAllCurrencies() ([]models.Currency, error)
+	GetCurrencyID(name string) (int, error)
+	GetCurrencyIDBySymbol(symbol string) (int, error)
+	GetCurrencyRate(currencyID int) (models.ExchangeRate, error)
+	GetDailyMinMax(currencyID int) (min, max float64, err error)
+	GetHourlyChange(currencyID int) (change float64, err error)
+	GetCurrencySymbolByID(currencyID int) (string, error)
+	GetCurrencyDisplayName(currencyID int) (string, error)
+	Ping() error
+	GetCurrencySymbol(currencyID int) (string, error)
 }
 
-func NewHandler(repo *repository.Repository) *Handler {
+type Handler struct {
+	repo RepositoryInterface
+}
+
+func NewHandler(repo RepositoryInterface) *Handler {
 	return &Handler{repo: repo}
 }
 
