@@ -1,0 +1,38 @@
+name: Manual Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      image_tag:
+        description: 'Image tag to deploy'
+        required: true
+        default: 'latest'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup environment variables
+      run: |
+        echo "IMAGE_TAG=${{ inputs.image_tag }}" >> $GITHUB_ENV
+        echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
+
+    - name: Deploy to ${{ inputs.environment }}
+      run: |
+        echo "Deploying to ${{ inputs.environment }} with tag ${{ inputs.image_tag }}"
+        # Here you would add your actual deployment commands
+        # For example, deploying to Kubernetes, AWS, etc.
+        echo "Deployment to ${{ inputs.environment }} completed!"

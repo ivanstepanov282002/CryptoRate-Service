@@ -1,0 +1,42 @@
+name: Tests
+
+on:
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: [1.21, 1.22]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go ${{ matrix.go-version }}
+      uses: actions/setup-go@v5
+      with:
+        go-version: ${{ matrix.go-version }}
+        cache: true
+
+    - name: Install dependencies
+      run: |
+        go mod download
+        go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+    - name: Lint
+      run: |
+        golangci-lint run ./... --timeout=5m
+        go vet ./...
+
+    - name: Test
+      run: |
+        go test ./... -v -race -coverprofile=coverage.txt -covermode=atomic
+        echo "Coverage results:"
+        go tool cover -func=coverage.txt
+
+    - name: Build
+      run: go build ./cmd/...

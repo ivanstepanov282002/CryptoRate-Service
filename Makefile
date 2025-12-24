@@ -1,4 +1,4 @@
-.PHONY: test test-cover test-unit test-integration bench build clean
+.PHONY: test test-cover test-unit test-integration bench build clean docker-build docker-push docker-up docker-down docker-test lint fmt
 
 # Запуск всех тестов
 test:
@@ -25,6 +25,21 @@ bench:
 build:
 	go build ./cmd/...
 
+# Сборка Docker образов
+docker-build:
+	docker build -f Dockerfile.api -t cryptorate-api:latest .
+	docker build -f Dockerfile.bot -t cryptorate-bot:latest .
+	docker build -f Dockerfile.worker -t cryptorate-worker:latest .
+
+# Загрузка Docker образов
+docker-push:
+	docker tag cryptorate-api:latest $(DOCKER_REGISTRY)/cryptorate-api:latest
+	docker tag cryptorate-bot:latest $(DOCKER_REGISTRY)/cryptorate-bot:latest
+	docker tag cryptorate-worker:latest $(DOCKER_REGISTRY)/cryptorate-worker:latest
+	docker push $(DOCKER_REGISTRY)/cryptorate-api:latest
+	docker push $(DOCKER_REGISTRY)/cryptorate-bot:latest
+	docker push $(DOCKER_REGISTRY)/cryptorate-worker:latest
+
 # Очистка
 clean:
 	rm -f coverage.out coverage.html
@@ -47,3 +62,22 @@ lint:
 # Форматирование кода
 fmt:
 	go fmt ./...
+
+# Запуск production compose
+docker-up-prod:
+	docker-compose -f docker-compose.prod.yml up -d
+
+docker-down-prod:
+	docker-compose -f docker-compose.prod.yml down
+
+# Миграции БД
+migrate-up:
+	docker-compose exec postgres psql -U crypto_user -d crypto_db -f /docker-entrypoint-initdb.d/01-init.sql
+
+# Проверка безопасности
+security-scan:
+	gosec ./...
+
+# Генерация документации
+docs:
+	godoc -http=:6060
