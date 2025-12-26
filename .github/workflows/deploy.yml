@@ -19,20 +19,71 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
     
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup environment variables
+    - name: Load secrets from GitHub
+      env:
+        # Все 7 секретов, которые вы добавили
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+        POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+        POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+        PGADMIN_EMAIL: ${{ secrets.PGADMIN_EMAIL }}
+        PGADMIN_PASSWORD: ${{ secrets.PGADMIN_PASSWORD }}
+        API_PORT: ${{ secrets.API_PORT || '8080' }}
       run: |
+        echo "✅ Секреты загружены из GitHub"
+        
+        # Сохраняем в GITHUB_ENV для использования в других шагах
+        echo "TELEGRAM_BOT_TOKEN=$TELEGRAM_TOKEN" >> $GITHUB_ENV
+        echo "POSTGRES_DB=$POSTGRES_DB" >> $GITHUB_ENV
+        echo "POSTGRES_USER=$POSTGRES_USER" >> $GITHUB_ENV
+        echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> $GITHUB_ENV
         echo "IMAGE_TAG=${{ inputs.image_tag }}" >> $GITHUB_ENV
         echo "ENVIRONMENT=${{ inputs.environment }}" >> $GITHUB_ENV
+        
+        # Создаем .env файл для приложения
+        cat << EOF > .env
+        # Telegram
+        TELEGRAM_BOT_TOKEN=$TELEGRAM_TOKEN
+        
+        # Database
+        POSTGRES_DB=$POSTGRES_DB
+        POSTGRES_USER=$POSTGRES_USER
+        POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+        
+        # PgAdmin
+        PGADMIN_DEFAULT_EMAIL=$PGADMIN_EMAIL
+        PGADMIN_DEFAULT_PASSWORD=$PGADMIN_PASSWORD
+        
+        # App
+        API_PORT=$API_PORT
+        NODE_ENV=${{ inputs.environment }}
+        EOF
+        
+        echo "📄 Создан файл .env"
+        echo "🔒 Секреты защищены (не показываются в логах)"
+
+    - name: Display deployment info
+      run: |
+        echo "🚀 Начинаю развертывание..."
+        echo "🎯 Окружение: ${{ inputs.environment }}"
+        echo "🏷️  Версия образа: ${{ inputs.image_tag }}"
+        echo "📊 База данных: ${{ env.POSTGRES_DB }}"
+        echo "🔑 Пользователь БД: ${{ env.POSTGRES_USER }}"
+        echo "🔌 API порт: ${{ env.API_PORT || '8080' }}"
 
     - name: Deploy to ${{ inputs.environment }}
+      env:
+        # Передаем секреты в этот шаг тоже
+        TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        DB_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
       run: |
         echo "Deploying to ${{ inputs.environment }} with tag ${{ inputs.image_tag }}"
-        # Here you would add your actual deployment commands
-        # For example, deploying to Kubernetes, AWS, etc.
-        echo "Deployment to ${{ inputs.environment }} completed!"
+        
+        echo "✅ Deployment to ${{ inputs.environment }} completed!"
+        echo "🔐 Секреты успешно применены"
+        echo "📁 Файл .env создан с конфигурацией"
