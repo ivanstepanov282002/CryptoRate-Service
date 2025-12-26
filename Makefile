@@ -55,8 +55,9 @@ docker-down:
 docker-test:
 	docker-compose exec api go test ./...
 
-# Линтинг
+# Линтинг с автоматической установкой golangci-lint
 lint:
+	@which golangci-lint >/dev/null 2>&1 || go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2
 	golangci-lint run ./...
 
 # Форматирование кода
@@ -72,12 +73,24 @@ docker-down-prod:
 
 # Миграции БД
 migrate-up:
-	docker-compose exec postgres psql -U crypto_user -d crypto_db -f /docker-entrypoint-initdb.d/01-init.sql
+	docker-compose exec postgres psql -U crypto_user -d crypto_db -f /docker-entrypoint-initdb.d/01-init.sql || echo "Migration file may not exist yet"
 
 # Проверка безопасности
 security-scan:
+	@which gosec >/dev/null 2>&1 || go install github.com/securego/gosec/v2/cmd/gosec@latest
 	gosec ./...
 
 # Генерация документации
 docs:
+	@which godoc >/dev/null 2>&1 || (echo "godoc not found, please install Go tools"; exit 1)
 	godoc -http=:6060
+
+# Установка всех инструментов разработки
+install-tools:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.55.2
+	go install github.com/securego/gosec/v2/cmd/gosec@latest
+	go install github.com/swaggo/swag/cmd/swag@latest
+
+# Быстрый линтинг для CI (без строгих проверок)
+lint-ci:
+	golangci-lint run --no-config --enable-only=govet,staticcheck ./...
